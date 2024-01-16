@@ -47,7 +47,7 @@ android {
     android.applicationVariants.all { variant ->
         variant.outputs.all {
             def date = new Date().format("yyyyMMddHHmm")
-            outputFileName = "mygo${variant.name}_v${variant.versionName}_${date}.apk"
+            outputFileName = "MyGo${variant.name}_v${variant.versionName}_${date}.apk"
         }
     }
 

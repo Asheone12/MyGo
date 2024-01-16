@@ -1,5 +1,7 @@
 package com.muen.mygo.ui
 
+import android.media.AudioManager
+import android.media.MediaPlayer
 import androidx.activity.viewModels
 import com.alibaba.android.arouter.facade.annotation.Route
 import com.bumptech.glide.Glide
@@ -14,19 +16,24 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel by viewModels<MainVM>()
+    private val mediaPlayer = MediaPlayer()
     override fun onCreateViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
 
     override fun initData() {
         super.initData()
-        viewModel.randomACG()
+        viewModel.getSong(2097486090)
     }
 
     override fun observerData() {
         super.observerData()
-        viewModel.acgResult.observe(this){
-            Glide.with(this).load(it?.url).transition(DrawableTransitionOptions.withCrossFade()).into(viewBinding.imgAcg)
+        viewModel.songResult.observe(this){
+            Glide.with(this).load(it?.cover).transition(DrawableTransitionOptions.withCrossFade()).into(viewBinding.imgAcg)
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+            mediaPlayer.setDataSource(it?.url)
+            mediaPlayer.prepare()
+            mediaPlayer.start()
         }
     }
 }

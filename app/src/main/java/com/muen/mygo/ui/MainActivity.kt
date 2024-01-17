@@ -42,7 +42,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.initView()
         //设置动画匀速运动
         animator = ObjectAnimator.ofFloat(viewBinding.imgAcg,"rotation",0f,360f)
-        animator.duration = 2000
+        animator.duration = 6500
         animator.interpolator = LinearInterpolator()
         animator.repeatCount = -1       //设置重复次数为无数次
         animator.repeatMode = ObjectAnimator.RESTART

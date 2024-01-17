@@ -111,6 +111,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
             mediaPlayer.setDataSource(it?.url)
             mediaPlayer.prepare()
+            viewBinding.loadView.visibility = View.GONE
             viewBinding.progressLayout.visibility = View.VISIBLE
             viewBinding.btnLayout.visibility = View.VISIBLE
             viewBinding.seekBar.max = mediaPlayer.duration

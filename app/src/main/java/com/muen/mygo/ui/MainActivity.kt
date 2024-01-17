@@ -25,27 +25,31 @@ import java.util.TimerTask
 class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel by viewModels<MainVM>()
     private val mediaPlayer = MediaPlayer()
-    private lateinit var animator:ObjectAnimator
+    private lateinit var animator: ObjectAnimator
     private val timer = Timer()
     private var isTick = false
     private var isSeeking = false
+    private var currentIndex = 0
+    private val songList = arrayListOf<Long>(2097486090, 2097485070,2097486092,2097486091)
     override fun onCreateViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
 
     override fun initData() {
         super.initData()
-        viewModel.getSong(2097486090)
+        viewModel.getSong(songList[currentIndex])
     }
 
     override fun initView() {
         super.initView()
         //设置动画匀速运动
-        animator = ObjectAnimator.ofFloat(viewBinding.imgAcg,"rotation",0f,360f)
+        animator = ObjectAnimator.ofFloat(viewBinding.imgAcg, "rotation", 0f, 360f)
         animator.duration = 6500
         animator.interpolator = LinearInterpolator()
         animator.repeatCount = -1       //设置重复次数为无数次
         animator.repeatMode = ObjectAnimator.RESTART
+        //设置播放器的播放类型
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
     }
 
     override fun initListener() {
@@ -82,38 +86,68 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         })
 
         viewBinding.play.setOnClickListener {
-            isTick = if(isTick){
+            isTick = if (isTick) {
                 viewBinding.play.setImageResource(R.drawable.play)
                 animator.pause()
                 mediaPlayer.pause()
                 false
-            }else{
-                if(mediaPlayer.currentPosition >= mediaPlayer.duration){
+            } else {
+                if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
                     mediaPlayer.seekTo(0)
                 }
                 viewBinding.play.setImageResource(R.drawable.pause)
-                if(animator.isStarted){
+                if (animator.isStarted) {
                     animator.resume()
-                }else{
+                } else {
                     animator.start()
                 }
                 mediaPlayer.start()
                 true
             }
         }
+
+        viewBinding.backward.setOnClickListener {
+            if (currentIndex == 0) {
+                currentIndex = songList.size - 1
+            } else {
+                currentIndex--
+            }
+            viewBinding.loadView.visibility = View.VISIBLE
+            viewBinding.content.visibility = View.GONE
+            viewModel.getSong(songList[currentIndex])
+        }
+
+        viewBinding.forward.setOnClickListener {
+            if (currentIndex == songList.size - 1) {
+                currentIndex = 0
+            } else {
+                currentIndex++
+            }
+            viewBinding.loadView.visibility = View.VISIBLE
+            viewBinding.content.visibility = View.GONE
+            viewModel.getSong(songList[currentIndex])
+        }
     }
 
     override fun observerData() {
         super.observerData()
         viewModel.songResult.observe(this) {
+            viewBinding.title.text = it?.songs
+            viewBinding.singer.text =it?.sings
             Glide.with(this).load(it?.cover).transition(DrawableTransitionOptions.withCrossFade())
                 .circleCrop().into(viewBinding.imgAcg)
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+            Glide.with(this).load(R.drawable.wo).into(viewBinding.gifView)
+
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+            }
+            mediaPlayer.reset()
             mediaPlayer.setDataSource(it?.url)
             mediaPlayer.prepare()
+
             viewBinding.loadView.visibility = View.GONE
-            viewBinding.progressLayout.visibility = View.VISIBLE
-            viewBinding.btnLayout.visibility = View.VISIBLE
+            viewBinding.content.visibility =View.VISIBLE
+
             viewBinding.seekBar.max = mediaPlayer.duration
             viewBinding.endTime.text = TimeUtils.calculateTime(mediaPlayer.duration / 1000)
             timer.schedule(object : TimerTask() {

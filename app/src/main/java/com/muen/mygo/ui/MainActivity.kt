@@ -50,6 +50,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         animator.repeatMode = ObjectAnimator.RESTART
         //设置播放器的播放类型
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+
+        Glide.with(this).load(R.drawable.cry).into(viewBinding.gifView)
     }
 
     override fun initListener() {
@@ -86,23 +88,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         })
 
         viewBinding.play.setOnClickListener {
-            isTick = if (isTick) {
-                viewBinding.play.setImageResource(R.drawable.play)
-                animator.pause()
-                mediaPlayer.pause()
-                false
+             if (isTick) {
+                songPause()
+
             } else {
-                if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
-                    mediaPlayer.seekTo(0)
-                }
-                viewBinding.play.setImageResource(R.drawable.pause)
-                if (animator.isStarted) {
-                    animator.resume()
-                } else {
-                    animator.start()
-                }
-                mediaPlayer.start()
-                true
+                songPlay()
             }
         }
 
@@ -112,6 +102,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             } else {
                 currentIndex--
             }
+            songPause()
+            viewBinding.seekBar.progress = 0
             viewBinding.loadView.visibility = View.VISIBLE
             viewBinding.content.visibility = View.GONE
             viewModel.getSong(songList[currentIndex])
@@ -123,6 +115,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             } else {
                 currentIndex++
             }
+            songPause()
+            viewBinding.seekBar.progress = 0
             viewBinding.loadView.visibility = View.VISIBLE
             viewBinding.content.visibility = View.GONE
             viewModel.getSong(songList[currentIndex])
@@ -136,7 +130,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewBinding.singer.text =it?.sings
             Glide.with(this).load(it?.cover).transition(DrawableTransitionOptions.withCrossFade())
                 .circleCrop().into(viewBinding.imgAcg)
-            Glide.with(this).load(R.drawable.wo).into(viewBinding.gifView)
 
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
@@ -158,7 +151,37 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
 
             }, 0, 50)
+
+            //彩蛋
+            if(songList[currentIndex] == 2097486090L){
+                viewBinding.gifView.visibility =View.VISIBLE
+                songPlay()
+            }else{
+                viewBinding.gifView.visibility =View.GONE
+            }
+
         }
+    }
+
+    private fun songPlay(){
+        if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
+            mediaPlayer.seekTo(0)
+        }
+        viewBinding.play.setImageResource(R.drawable.pause)
+        if (animator.isStarted) {
+            animator.resume()
+        } else {
+            animator.start()
+        }
+        mediaPlayer.start()
+        isTick = true
+    }
+
+    private fun songPause(){
+        viewBinding.play.setImageResource(R.drawable.play)
+        animator.pause()
+        mediaPlayer.pause()
+        isTick = false
     }
 
     override fun onDestroy() {

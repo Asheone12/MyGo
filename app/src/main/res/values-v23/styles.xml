@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Base.v23.AppTheme" />
+
+    <style name="Base.v23.AppTheme" parent="Base.v21.AppTheme">
+        <!--状态栏黑色文字和图标-->
+        <item name="android:windowLightStatusBar">true</item>
+        <!--状态栏颜色-->
+        <item name="android:statusBarColor">@color/xm_background</item>
+        <!--取消半透明-->
+        <item name="android:windowTranslucentStatus">false</item>
+    </style>
+
+</resources>

@@ -44,7 +44,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         animator = ObjectAnimator.ofFloat(viewBinding.imgAcg,"rotation",0f,360f)
         animator.duration = 2000
         animator.interpolator = LinearInterpolator()
-        animator.repeatCount = -1
+        animator.repeatCount = -1       //设置重复次数为无数次
         animator.repeatMode = ObjectAnimator.RESTART
     }
 

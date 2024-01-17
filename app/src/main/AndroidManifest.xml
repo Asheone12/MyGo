@@ -17,7 +17,7 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/icon_logo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyGo"
+        android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity

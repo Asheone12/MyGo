@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--  字体大小  -->
+    <dimen name="xm_text_size_xxs">8sp</dimen>
+    <dimen name="xm_text_size_xs">12sp</dimen>
+    <dimen name="xm_text_size_s">14sp</dimen>
+    <dimen name="xm_text_size_m">15sp</dimen>
+    <dimen name="xm_text_size_l">17sp</dimen>
+    <dimen name="xm_text_size_xl">20sp</dimen>
+    <dimen name="xm_text_size_xxl">24.0sp</dimen>
+
+</resources>

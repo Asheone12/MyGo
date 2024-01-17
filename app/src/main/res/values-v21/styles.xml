@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Base.v21.AppTheme" />
+
+    <style name="Base.v21.AppTheme" parent="Base.v19.AppTheme">
+        <!--由于api21时无法改变状态栏文字颜色，设置全屏并半透明-->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
+
+
+</resources>

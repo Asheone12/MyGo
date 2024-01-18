@@ -110,4 +110,9 @@ dependencies {
 
     //loading动画
     implementation("com.github.zzz40500:android-shapeLoadingView:1.0.3.2")
+    //Media3 - ExoPlayer
+    implementation("androidx.media3:media3-ui:1.1.0")
+    implementation("androidx.media3:media3-session:1.1.0")
+    implementation("androidx.media3:media3-exoplayer:1.1.0")
+    implementation("androidx.media3:media3-common:1.1.0")
 }

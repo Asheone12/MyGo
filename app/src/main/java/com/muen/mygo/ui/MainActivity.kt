@@ -8,6 +8,7 @@ import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import com.alibaba.android.arouter.facade.annotation.Route
+import com.alibaba.android.arouter.launcher.ARouter
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.muen.mygo.ARouteAddress
@@ -120,6 +121,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewBinding.loadView.visibility = View.VISIBLE
             viewBinding.content.visibility = View.GONE
             viewModel.getSong(songList[currentIndex])
+        }
+
+        viewBinding.gifView.setOnClickListener {
+            ARouter.getInstance().build(ARouteAddress.APP_VIDEO).navigation()
         }
     }
 

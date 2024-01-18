@@ -150,7 +150,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
 
-            }, 0, 50)
+            }, 0, 1000)
 
             //彩蛋
             if(songList[currentIndex] == 2097486090L){

@@ -10,8 +10,7 @@
         android:id="@+id/loadView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:loadingText="正在加载中 . . .">
-    </com.mingle.widget.LoadingView>
+        app:loadingText="正在加载中 . . ."/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@id/content"
@@ -23,34 +22,34 @@
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             android:layout_marginTop="20dp"
-            android:textSize="@dimen/xm_text_size_xl"
             android:textColor="#333333"
+            android:textSize="@dimen/xm_text_size_xl"
             android:textStyle="bold"
-            tools:text="春日影"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="春日影" />
 
         <TextView
             android:id="@+id/singer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/title"
             android:layout_marginTop="10dp"
             android:textColor="#999999"
             android:textSize="@dimen/xm_text_size_m"
-            tools:text="MyGo!!!"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title"
+            tools:text="MyGo!!!" />
 
         <ImageView
             android:id="@+id/img_acg"
             android:layout_width="220dp"
             android:layout_height="220dp"
             android:layout_marginTop="20dp"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/singer" />
 
         <LinearLayout
@@ -63,22 +62,25 @@
 
             <TextView
                 android:id="@+id/start_time"
-                android:layout_width="wrap_content"
+                android:layout_width="42dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
+                android:gravity="center"
+                android:maxLines="1"
                 tools:text="00:00" />
 
             <SeekBar
                 android:id="@+id/seek_bar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="7dp"
                 android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/end_time"
-                android:layout_width="wrap_content"
+                android:layout_width="42dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
+                android:gravity="center"
+                android:maxLines="1"
                 tools:text="04:20" />
         </LinearLayout>
 
@@ -115,8 +117,8 @@
             android:id="@+id/gif_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="20dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btn_layout" />

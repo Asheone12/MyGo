@@ -6,12 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".ui.video.VideoActivity">
 
-    <androidx.media3.ui.PlayerView
+    <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/play_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:resize_mode="fit"
         app:show_buffering="always"
-        app:use_controller="true" />
+        app:use_controller="true"
+        app:controller_layout_id="@layout/layout_video_ui">
+    </com.google.android.exoplayer2.ui.PlayerView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

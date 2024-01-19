@@ -3,6 +3,7 @@ package com.muen.mygo.ui
 import android.animation.ObjectAnimator
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
@@ -30,10 +31,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val mediaPlayer = MediaPlayer()
     private lateinit var animator: ObjectAnimator
     private val timer = Timer()
-    private var isTick = false
-    private var isSeeking = false
-    private var currentIndex = 0
-    private val songList = arrayListOf<Long>(2097486090, 2097485070,2097486092,2097486091)
+    private var isTick = false   //是否正在计时
+    private var playStatus = 0   //0播放 1暂停
+    private var isSeeking = false   //是否正在拖动进度条
+    private var currentIndex = 0    //当前播放歌曲的序号
+    private var playMode = 0      //0列表循环 1随机播放 2单曲循环
+    private val songList = arrayListOf<Long>(2097486090, 2097485070, 2097486092, 2097486091)
     override fun onCreateViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
@@ -61,12 +64,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.initListener()
         viewBinding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
-                    isTick = false
-                    viewBinding.play.setImageResource(R.drawable.play)
-                    mediaPlayer.pause()
-                    animator.cancel()
-                }
                 viewBinding.startTime.text =
                     TimeUtils.calculateTime(mediaPlayer.currentPosition / 1000)
             }
@@ -78,24 +75,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 isSeeking = false
                 mediaPlayer.seekTo(seekBar?.progress!!)
-                if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
-                    isTick = false
-                    viewBinding.play.setImageResource(R.drawable.play)
-                    mediaPlayer.pause()
-                    animator.cancel()
-                }
                 viewBinding.startTime.text =
                     TimeUtils.calculateTime(mediaPlayer.currentPosition / 1000)
             }
 
         })
 
-        viewBinding.play.setOnClickListener {
-             if (isTick) {
-                songPause()
+        mediaPlayer.setOnCompletionListener {
+            playNext()
+        }
 
-            } else {
-                songPlay()
+        viewBinding.play.setOnClickListener {
+            when (playStatus) {
+                0 -> songPause()
+                else -> songPlay()
             }
         }
 
@@ -125,20 +118,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.getSong(songList[currentIndex])
         }
 
+        viewBinding.playLoop.setOnClickListener {
+            when (playMode) {
+                0 -> {
+                    playMode = 1
+                    viewBinding.playLoop.setImageResource(R.drawable.play_random)
+                    mediaPlayer.isLooping = false
+                }
+
+                1 -> {
+                    playMode = 2
+                    viewBinding.playLoop.setImageResource(R.drawable.play_single_loop)
+                    mediaPlayer.isLooping = true
+                }
+
+                else -> {
+                    playMode = 0
+                    viewBinding.playLoop.setImageResource(R.drawable.play_list_loop)
+                    mediaPlayer.isLooping = false
+                }
+            }
+            Log.d("loop", "playMode = $playMode")
+        }
+
         viewBinding.gifView.setOnClickListener {
             ARouter.getInstance().build(ARouteAddress.APP_VIDEO).navigation()
         }
     }
 
+
     override fun observerData() {
         super.observerData()
         viewModel.songResult.observe(this) {
             viewBinding.title.text = it?.songs
-            viewBinding.singer.text =it?.sings
+            viewBinding.singer.text = it?.sings
             Glide.with(this).load(it?.cover).transition(DrawableTransitionOptions.withCrossFade())
                 .circleCrop().into(viewBinding.imgAcg)
 
-            Glide.with(this).load(it?.cover).apply(RequestOptions.bitmapTransform(BlurTransformation(25,10))).into(viewBinding.ivBg)
+            Glide.with(this).load(it?.cover)
+                .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 10)))
+                .into(viewBinding.ivBg)
 
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
@@ -148,7 +167,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             mediaPlayer.prepare()
 
             viewBinding.loadView.visibility = View.GONE
-            viewBinding.content.visibility =View.VISIBLE
+            viewBinding.content.visibility = View.VISIBLE
 
             viewBinding.seekBar.max = mediaPlayer.duration
             viewBinding.endTime.text = TimeUtils.calculateTime(mediaPlayer.duration / 1000)
@@ -162,21 +181,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }, 0, 1000)
 
             //彩蛋
-            if(songList[currentIndex] == 2097486090L){
-                viewBinding.gifView.visibility =View.VISIBLE
-                songPlay()
-            }else{
-                viewBinding.gifView.visibility =View.GONE
+            if (songList[currentIndex] == 2097486090L) {
+                viewBinding.gifView.visibility = View.VISIBLE
+            } else {
+                viewBinding.gifView.visibility = View.GONE
             }
+            songPlay()
 
         }
     }
 
-    private fun songPlay(){
+    private fun songPlay() {
         if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
             mediaPlayer.seekTo(0)
         }
-        viewBinding.play.setImageResource(R.drawable.pause)
+        viewBinding.play.setImageResource(R.drawable.play)
         if (animator.isStarted) {
             animator.resume()
         } else {
@@ -184,13 +203,52 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         mediaPlayer.start()
         isTick = true
+        playStatus = 0
     }
 
-    private fun songPause(){
-        viewBinding.play.setImageResource(R.drawable.play)
+    private fun songPause() {
+        viewBinding.play.setImageResource(R.drawable.pause)
         animator.pause()
         mediaPlayer.pause()
         isTick = false
+        playStatus = 1
+    }
+
+    private fun playNext() {
+        songPause()
+        when (playMode) {
+            0 -> {
+                Log.d("loop", "即将列表循环")
+                if (currentIndex == songList.size - 1) {
+                    currentIndex = 0
+                } else {
+                    currentIndex++
+                }
+                viewBinding.seekBar.progress = 0
+                viewBinding.loadView.visibility = View.VISIBLE
+                viewBinding.content.visibility = View.GONE
+                viewModel.getSong(songList[currentIndex])
+            }
+
+            1 -> {
+                Log.d("loop", "即将随机播放")
+                if (songList.size > 1) {
+                    var random = (0 until songList.size).random()
+                    while (currentIndex == random) {
+                        random = (0 until songList.size).random()
+                    }
+                    currentIndex = random
+                }
+                viewBinding.seekBar.progress = 0
+                viewBinding.loadView.visibility = View.VISIBLE
+                viewBinding.content.visibility = View.GONE
+                viewModel.getSong(songList[currentIndex])
+
+            }
+
+            else -> {}
+        }
+
     }
 
     override fun onDestroy() {

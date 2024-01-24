@@ -1,9 +1,10 @@
 package com.muen.mygo.ui
 
 import android.animation.ObjectAnimator
+import android.content.ComponentName
 import android.content.Intent
-import android.media.AudioManager
-import android.media.MediaPlayer
+import android.content.ServiceConnection
+import android.os.IBinder
 import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -17,7 +18,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.muen.mygo.ARouteAddress
 import com.muen.mygo.R
 import com.muen.mygo.databinding.ActivityMainBinding
-import com.muen.mygo.service.MusicPlayService
+import com.muen.mygo.service.MusicService
 import com.muen.mygo.ui.vm.MainVM
 import com.muen.mygo.util.BaseActivity
 import com.muen.mygo.util.TimeUtils
@@ -30,7 +31,7 @@ import java.util.TimerTask
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel by viewModels<MainVM>()
-    private val mediaPlayer = MediaPlayer()
+    //private val mediaPlayer = MediaPlayer()
     private lateinit var animator: ObjectAnimator
     private val timer = Timer()
     private var isTick = false   //是否正在计时
@@ -39,6 +40,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var currentIndex = 0    //当前播放歌曲的序号
     private var playMode = 0      //0列表循环 1随机播放 2单曲循环
     private val songList = arrayListOf<Long>(2097486090, 2097485070, 2097486092, 2097486091)
+
+    private val musicConnection = MusicConnection()
+    lateinit var musicControl:MusicService.MusicControl
+
     override fun onCreateViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
@@ -50,7 +55,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun initView() {
         super.initView()
-        startService(Intent(this,MusicPlayService::class.java))
+
+        val intent = Intent(this,MusicService::class.java)
+        //startService(intent)
+        bindService(intent,musicConnection, BIND_AUTO_CREATE)
+
         //设置动画匀速运动
         animator = ObjectAnimator.ofFloat(viewBinding.imgAcg, "rotation", 0f, 360f)
         animator.duration = 6500
@@ -58,7 +67,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         animator.repeatCount = -1       //设置重复次数为无数次
         animator.repeatMode = ObjectAnimator.RESTART
         //设置播放器的播放类型
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+        //mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
 
         Glide.with(this).asGif().load(R.drawable.cry).into(viewBinding.gifView)
     }
@@ -68,7 +77,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         viewBinding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 viewBinding.startTime.text =
-                    TimeUtils.calculateTime(mediaPlayer.currentPosition / 1000)
+                    TimeUtils.calculateTime(musicControl.currentPos() / 1000)//(mediaPlayer.currentPosition / 1000)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -77,21 +86,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 isSeeking = false
-                mediaPlayer.seekTo(seekBar?.progress!!)
+                musicControl.seekTo(seekBar?.progress!!)//mediaPlayer.seekTo(seekBar?.progress!!)
                 viewBinding.startTime.text =
-                    TimeUtils.calculateTime(mediaPlayer.currentPosition / 1000)
+                    TimeUtils.calculateTime(musicControl.currentPos() / 1000)//(mediaPlayer.currentPosition / 1000)
             }
 
         })
 
-        mediaPlayer.setOnCompletionListener {
+       /* mediaPlayer.setOnCompletionListener {
             playNext()
-        }
+        }*/
+
 
         viewBinding.play.setOnClickListener {
             when (playStatus) {
-                0 -> songPause()
-                else -> songPlay()
+                0 -> {songPause()
+                    musicControl.pauseMusic()}
+                else -> {songPlay()
+                    musicControl.playMusic()}
             }
         }
 
@@ -126,19 +138,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 0 -> {
                     playMode = 1
                     viewBinding.playLoop.setImageResource(R.drawable.play_random)
-                    mediaPlayer.isLooping = false
+                    musicControl.setLooping(false) //mediaPlayer.isLooping = false
                 }
 
                 1 -> {
                     playMode = 2
                     viewBinding.playLoop.setImageResource(R.drawable.play_single)
-                    mediaPlayer.isLooping = true
+                    musicControl.setLooping(true) //mediaPlayer.isLooping = true
                 }
 
                 else -> {
                     playMode = 0
                     viewBinding.playLoop.setImageResource(R.drawable.play_list_loop)
-                    mediaPlayer.isLooping = false
+                    musicControl.setLooping(false) //mediaPlayer.isLooping = false
                 }
             }
             Log.d("loop", "playMode = $playMode")
@@ -162,22 +174,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 10)))
                 .into(viewBinding.ivBg)
 
-            if (mediaPlayer.isPlaying) {
+            /*if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
             }
             mediaPlayer.reset()
             mediaPlayer.setDataSource(it?.url)
-            mediaPlayer.prepare()
+            mediaPlayer.prepare()*/
+            musicControl.prepare(it?.url!!)
 
             viewBinding.loadView.visibility = View.GONE
             viewBinding.content.visibility = View.VISIBLE
 
-            viewBinding.seekBar.max = mediaPlayer.duration
-            viewBinding.endTime.text = TimeUtils.calculateTime(mediaPlayer.duration / 1000)
+            viewBinding.seekBar.max = musicControl.duration()  //mediaPlayer.duration
+            viewBinding.endTime.text = TimeUtils.calculateTime(musicControl.duration() / 1000)  //(mediaPlayer.duration / 1000)
             timer.schedule(object : TimerTask() {
                 override fun run() {
                     if (isTick && !isSeeking) {
-                        viewBinding.seekBar.progress = mediaPlayer.currentPosition
+                        viewBinding.seekBar.progress = musicControl.currentPos()  //mediaPlayer.currentPosition
                     }
                 }
 
@@ -194,6 +207,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    inner class MusicConnection: ServiceConnection {
+        override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
+            musicControl = p1 as MusicService.MusicControl
+            musicControl.completionListener {
+                playNext()
+            }
+        }
+        override fun onServiceDisconnected(p0: ComponentName?) {
+
+        }
+    }
+
     private fun getSongList(){
         for(song in songList){
             viewModel.getSong(song)
@@ -201,16 +226,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun songPlay() {
-        if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
+        /*if (mediaPlayer.currentPosition >= mediaPlayer.duration) {
             mediaPlayer.seekTo(0)
+        }*/
+        if(musicControl.currentPos() >= musicControl.duration()){
+            musicControl.seekTo(0)
         }
+
         viewBinding.play.setImageResource(R.drawable.play)
         if (animator.isStarted) {
             animator.resume()
         } else {
             animator.start()
         }
-        mediaPlayer.start()
+        musicControl.playMusic()  //mediaPlayer.start()
+
         isTick = true
         playStatus = 0
     }
@@ -218,7 +248,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun songPause() {
         viewBinding.play.setImageResource(R.drawable.pause)
         animator.pause()
-        mediaPlayer.pause()
+        musicControl.pauseMusic()  //mediaPlayer.pause()
         isTick = false
         playStatus = 1
     }
@@ -263,8 +293,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         timer.cancel()
-        mediaPlayer.stop()
-        mediaPlayer.release()
+        musicControl.stop()  //mediaPlayer.stop()
+        musicControl.release()  //mediaPlayer.release()
         viewBinding.imgAcg.clearAnimation()
     }
 }

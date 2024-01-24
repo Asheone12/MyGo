@@ -1,6 +1,7 @@
 package com.muen.mygo.ui
 
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.util.Log
@@ -16,6 +17,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.muen.mygo.ARouteAddress
 import com.muen.mygo.R
 import com.muen.mygo.databinding.ActivityMainBinding
+import com.muen.mygo.service.MusicPlayService
 import com.muen.mygo.ui.vm.MainVM
 import com.muen.mygo.util.BaseActivity
 import com.muen.mygo.util.TimeUtils
@@ -48,6 +50,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun initView() {
         super.initView()
+        startService(Intent(this,MusicPlayService::class.java))
         //设置动画匀速运动
         animator = ObjectAnimator.ofFloat(viewBinding.imgAcg, "rotation", 0f, 360f)
         animator.duration = 6500
@@ -128,7 +131,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                 1 -> {
                     playMode = 2
-                    viewBinding.playLoop.setImageResource(R.drawable.play_single_loop)
+                    viewBinding.playLoop.setImageResource(R.drawable.play_single)
                     mediaPlayer.isLooping = true
                 }
 
@@ -188,6 +191,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
             songPlay()
 
+        }
+    }
+
+    private fun getSongList(){
+        for(song in songList){
+            viewModel.getSong(song)
         }
     }
 

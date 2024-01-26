@@ -12,93 +12,180 @@ import android.media.MediaPlayer
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.muen.mygo.R
+import com.muen.mygo.source.local.entity.SongEntity
 import com.muen.mygo.ui.MainActivity
 
 
 class MusicService : Service() {
-    private lateinit var mediaPlayer: MediaPlayer
+
     override fun onBind(intent: Intent?): IBinder {
         return MusicControl()
     }
 
     override fun onCreate() {
         super.onCreate()
-        initMediaPlayer()
-
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            val channel = NotificationChannel("musicService","音乐播放",NotificationManager.IMPORTANCE_DEFAULT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "musicService",
+                "音乐播放",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
             manager.createNotificationChannel(channel)
         }
         val intent = Intent(this, MainActivity::class.java)
-        val pi = PendingIntent.getActivity(this,0,intent, PendingIntent.FLAG_IMMUTABLE)
-        val notification = NotificationCompat.Builder(this,"musicService")
+        val pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val notification = NotificationCompat.Builder(this, "musicService")
             .setContentTitle("It's MyGo!!!!")
             .setContentText("正在演奏春日影 . . .")
             .setSmallIcon(R.drawable.icon_logo)
-            .setLargeIcon(BitmapFactory.decodeResource(resources,R.drawable.icon_logo))
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_logo))
             .setContentIntent(pi)
             .build()
-        startForeground(1,notification)
+        startForeground(1, notification)
     }
 
-    private fun initMediaPlayer() {
-        mediaPlayer = MediaPlayer()
-        //设置播放器的播放类型
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-    }
+
 
     //该内部类包含所有歌曲的操作
-    inner class MusicControl:Binder() {
-        fun prepare(url:String){
+    inner class MusicControl : Binder() {
+        private lateinit var mediaPlayer: MediaPlayer
+        private var playMode = 0
+        private var songs: List<SongEntity> = arrayListOf()
+        private var currentIndex = 0
+
+        lateinit var indexChangeListener:(Int)->Unit
+
+        fun setOnIndexChangeListener(listener:(Int)->Unit){
+            indexChangeListener=listener
+            //indexChangeListener(currentIndex)
+        }
+
+        fun initMediaPlayer() {
+            mediaPlayer = MediaPlayer()
+            //设置播放器的播放类型
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+            //播放完毕监听
+            mediaPlayer.setOnCompletionListener {
+                nextPlay()
+                if(playMode != 2){
+                    playMusic()
+                }
+            }
+            //播放出现错误监听,直接拦截，若不拦截则会再次调用播放完毕的监听事件，导致连续切歌
+            mediaPlayer.setOnErrorListener { _, _, _ ->
+                return@setOnErrorListener true
+            }
+
+        }
+
+        fun loadSongs(songs: List<SongEntity>) {
+            this.songs = songs
+        }
+
+        fun setPlayMode(playMode: Int) {
+            this.playMode = playMode
+        }
+
+        fun setCurrentIndex(currentIndex: Int) {
+            this.currentIndex = currentIndex
+            indexChangeListener(currentIndex)
+        }
+
+        fun currentIndex(): Int {
+            return currentIndex
+        }
+
+        fun duration(): Int {
+            return mediaPlayer.duration
+        }
+
+        fun currentPos(): Int {
+            return mediaPlayer.currentPosition
+        }
+
+        fun prepare(url: String) {
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
             }
             mediaPlayer.reset()
             mediaPlayer.setDataSource(url)
+            Log.d("index","url = $url")
             mediaPlayer.prepare()
-        }
-
-        fun duration():Int{
-            return mediaPlayer.duration
-        }
-
-        fun currentPos():Int{
-            return mediaPlayer.currentPosition
         }
 
         fun playMusic() {
             mediaPlayer.start()
         }
+
         fun pauseMusic() {
             mediaPlayer.pause()
         }
 
-        fun stop(){
+        fun playBackward(){
+            if (currentIndex == 0) {
+                currentIndex = songs.size - 1
+            } else {
+                currentIndex--
+            }
+            indexChangeListener(currentIndex)
+        }
+
+        fun playForward(){
+            if (currentIndex == songs.size - 1) {
+                currentIndex = 0
+            } else {
+                currentIndex++
+            }
+            indexChangeListener(currentIndex)
+        }
+
+        private fun playRandom(){
+            if (songs.size > 1) {
+                var random = (songs.indices).random()
+                while (currentIndex == random) {
+                    random = (songs.indices).random()
+                }
+                currentIndex = random
+            }
+            indexChangeListener(currentIndex)
+        }
+
+        fun stop() {
             mediaPlayer.stop()
         }
 
-        fun release(){
+        fun release() {
             mediaPlayer.release()
         }
 
-        fun seekTo(mSec:Int){
+        fun seekTo(mSec: Int) {
             mediaPlayer.seekTo(mSec)
         }
 
-        fun setLooping(isLoop:Boolean){
-            mediaPlayer.isLooping = isLoop
+        fun setLooping(isLooping: Boolean) {
+            mediaPlayer.isLooping = isLooping
         }
 
-        fun completionListener(handler:(MediaPlayer) -> Unit){
-            mediaPlayer.setOnCompletionListener {
-                handler.invoke(it)
+        private fun nextPlay() {
+            pauseMusic()
+            when (playMode) {
+                0 -> {
+                    playForward()
+                    prepare(songs[currentIndex].url)
+                }
+
+                1 -> {
+                    playRandom()
+                    prepare(songs[currentIndex].url)
+                }
+                else -> {}
             }
         }
     }
-
 
 
     override fun onDestroy() {

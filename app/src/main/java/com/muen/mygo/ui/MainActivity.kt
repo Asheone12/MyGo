@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.SeekBar
@@ -39,7 +38,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var playStatus = 0   //0播放 1暂停
     private var isSeeking = false   //是否正在拖动进度条
 
-    //private var currentIndex = 0    //当前播放歌曲的序号
     private var playMode = 0      //0列表循环 1随机播放 2单曲循环
     private var songs: List<SongEntity> = arrayListOf()
 
@@ -125,13 +123,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         viewBinding.backward.setOnClickListener {
             songPause()
             musicControl.playBackward()
-            //loadComplete(songs[musicControl.currentIndex()],true)
         }
 
         viewBinding.forward.setOnClickListener {
             songPause()
             musicControl.playForward()
-            //loadComplete(songs[musicControl.currentIndex()],true)
         }
 
         viewBinding.playMode.setOnClickListener {
@@ -157,7 +153,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     musicControl.setLooping(false)
                 }
             }
-            Log.d("loop", "playMode = $playMode")
+        }
+
+        viewBinding.floatBtn.setOnClickListener{
+            //彩蛋
+            if( songs[musicControl.currentIndex()].sid == "2097486090"){
+                if(viewBinding.gifView.visibility == View.GONE){
+                    viewBinding.gifView.visibility = View.VISIBLE
+                }else{
+                    viewBinding.gifView.visibility = View.GONE
+                }
+            }else{
+                ToastUtils.toast("工号2568，客服小祥为您服务")
+            }
         }
 
         viewBinding.gifView.setOnClickListener {
@@ -179,7 +187,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             )
             viewModel.selectSong(it.id) { song ->
                 if (song == null) {
-                    ToastUtils.toast("数据库内未获取该歌曲，正在添加")
+                    ToastUtils.toast("数据库内未获取该歌曲，正在添加 . . .")
                     viewModel.insertWord(songEntity)
                 }
             }
@@ -199,7 +207,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 10)))
             .into(viewBinding.ivBg)
 
-        musicControl.prepare(song.url)
+        musicControl.prepare(song)
         songPlay()
 
 
@@ -217,9 +225,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         }, 0, 1000)
 
+        viewBinding.floatBtn.visibility = View.VISIBLE
         //彩蛋
         if (songs[musicControl.currentIndex()].sid == "2097486090") {
-            viewBinding.gifView.visibility = View.VISIBLE
+            //viewBinding.floatBtn.visibility = View.VISIBLE
         } else {
             viewBinding.gifView.visibility = View.GONE
         }

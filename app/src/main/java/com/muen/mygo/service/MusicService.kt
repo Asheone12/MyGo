@@ -12,7 +12,6 @@ import android.media.MediaPlayer
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.muen.mygo.R
 import com.muen.mygo.source.local.entity.SongEntity
@@ -20,6 +19,7 @@ import com.muen.mygo.ui.MainActivity
 
 
 class MusicService : Service() {
+    private lateinit var notification: NotificationCompat.Builder
 
     override fun onBind(intent: Intent?): IBinder {
         return MusicControl()
@@ -38,14 +38,13 @@ class MusicService : Service() {
         }
         val intent = Intent(this, MainActivity::class.java)
         val pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        val notification = NotificationCompat.Builder(this, "musicService")
+        notification = NotificationCompat.Builder(this, "musicService")
             .setContentTitle("It's MyGo!!!!")
-            .setContentText("正在演奏春日影 . . .")
             .setSmallIcon(R.drawable.icon_logo)
             .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_logo))
             .setContentIntent(pi)
-            .build()
-        startForeground(1, notification)
+
+        startForeground(1, notification.build())
     }
 
 
@@ -107,14 +106,15 @@ class MusicService : Service() {
             return mediaPlayer.currentPosition
         }
 
-        fun prepare(url: String) {
+        fun prepare(song: SongEntity) {
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
             }
             mediaPlayer.reset()
-            mediaPlayer.setDataSource(url)
-            Log.d("index","url = $url")
+            mediaPlayer.setDataSource(song.url)
             mediaPlayer.prepare()
+            notification.setContentText("正在演奏 ${song.songs} . . .")
+            startForeground(1, notification.build())
         }
 
         fun playMusic() {
@@ -175,12 +175,12 @@ class MusicService : Service() {
             when (playMode) {
                 0 -> {
                     playForward()
-                    prepare(songs[currentIndex].url)
+                    prepare(songs[currentIndex])
                 }
 
                 1 -> {
                     playRandom()
-                    prepare(songs[currentIndex].url)
+                    prepare(songs[currentIndex])
                 }
                 else -> {}
             }

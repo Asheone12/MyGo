@@ -11,9 +11,6 @@ import android.widget.SeekBar
 import androidx.activity.viewModels
 import com.alibaba.android.arouter.facade.annotation.Route
 import com.alibaba.android.arouter.launcher.ARouter
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.RequestOptions
 import com.muen.mygo.ARouteAddress
 import com.muen.mygo.R
 import com.muen.mygo.databinding.ActivityMainBinding
@@ -21,10 +18,10 @@ import com.muen.mygo.service.MusicService
 import com.muen.mygo.source.local.entity.SongEntity
 import com.muen.mygo.ui.vm.MainVM
 import com.muen.mygo.util.BaseActivity
+import com.muen.mygo.util.GlideUtils
 import com.muen.mygo.util.TimeUtils
 import com.muen.mygo.util.ToastUtils
 import dagger.hilt.android.AndroidEntryPoint
-import jp.wasabeef.glide.transformations.BlurTransformation
 import java.util.Timer
 import java.util.TimerTask
 
@@ -82,7 +79,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         animator.repeatMode = ObjectAnimator.RESTART
         //设置播放器的播放类型
 
-        Glide.with(this).asGif().load(R.drawable.cry).into(viewBinding.gifView)
+        //加载gif动图
+        GlideUtils.loadLocalGif(R.drawable.cry, viewBinding.gifView)
     }
 
     override fun initListener() {
@@ -155,15 +153,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        viewBinding.floatBtn.setOnClickListener{
+        viewBinding.floatBtn.setOnClickListener {
             //彩蛋
-            if( songs[musicControl.currentIndex()].sid == "2097486090"){
-                if(viewBinding.gifView.visibility == View.GONE){
+            if (songs[musicControl.currentIndex()].sid == "2097486090") {
+                if (viewBinding.gifView.visibility == View.GONE) {
                     viewBinding.gifView.visibility = View.VISIBLE
-                }else{
+                } else {
                     viewBinding.gifView.visibility = View.GONE
                 }
-            }else{
+            } else {
                 ToastUtils.toast("工号2568，客服小祥为您服务")
             }
         }
@@ -200,12 +198,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         viewBinding.seekBar.progress = 0
         viewBinding.title.text = song.songs
         viewBinding.singer.text = song.sings
-        Glide.with(this).load(song.cover).transition(DrawableTransitionOptions.withCrossFade())
-            .circleCrop().into(viewBinding.imgAcg)
-
-        Glide.with(this).load(song.cover)
-            .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 10)))
-            .into(viewBinding.ivBg)
+        GlideUtils.loadUrlCircle(song.cover, viewBinding.imgAcg)
+        GlideUtils.loadUrl(song.cover, viewBinding.ivBg, isGlass = true)
 
         musicControl.prepare(song)
         songPlay()

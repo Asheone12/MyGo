@@ -2,6 +2,7 @@ package com.muen.mygo
 
 import android.app.Application
 import com.alibaba.android.arouter.launcher.ARouter
+import com.muen.mygo.util.GlideUtils
 import com.muen.mygo.util.ToastUtils
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
@@ -17,5 +18,7 @@ class AppApplication : Application() {
         ARouter.init(this)
         //初始化ToastUtils
         ToastUtils.init(this)
+        //初始化GlideUtils
+        GlideUtils.init(this)
     }
 }

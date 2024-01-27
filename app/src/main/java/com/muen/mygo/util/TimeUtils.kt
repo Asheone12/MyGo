@@ -1,6 +1,7 @@
 package com.muen.mygo.util
 
 object TimeUtils {
+    //时间戳转具体时长
     fun calculateTime(time: Int): String {
         val minute = time / 60
         val second = time % 60

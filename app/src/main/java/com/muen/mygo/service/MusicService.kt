@@ -16,11 +16,14 @@ import androidx.core.app.NotificationCompat
 import com.muen.mygo.R
 import com.muen.mygo.source.local.entity.SongEntity
 import com.muen.mygo.ui.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MusicService : Service() {
     private lateinit var notification: NotificationCompat.Builder
-
+    @Inject
+    lateinit var serviceModel:ServiceModel
     override fun onBind(intent: Intent?): IBinder {
         return MusicControl()
     }
@@ -45,6 +48,8 @@ class MusicService : Service() {
             .setContentIntent(pi)
 
         startForeground(1, notification.build())
+
+        //serviceModel.getSong(28872116)
     }
 
 

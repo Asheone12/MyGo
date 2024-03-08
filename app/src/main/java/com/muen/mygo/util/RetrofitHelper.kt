@@ -1,7 +1,10 @@
 package com.muen.mygo.util
 
-import android.os.Build
+import com.muen.mygo.BuildConfig.BASE_URL
+import com.muen.mygo.BuildConfig.BASE_URL_PAUGRAM
 import com.muen.mygo.MMKVManage.HTTP_TIME_OUT
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -12,20 +15,33 @@ import java.util.concurrent.TimeUnit
  * Header配置
  */
 object HeaderInterceptorKt {
-    val token = ""
     val headerInterceptor: Interceptor = Interceptor { chain ->
-        val original = chain.request()
-        val originalHttpUrl = original.url
-        val url = originalHttpUrl.newBuilder()
-            .addQueryParameter("systemVer", Build.VERSION.RELEASE)
-            .addQueryParameter("phone_brand", Build.MANUFACTURER)
-            .addQueryParameter("device", "Android")
-            .addQueryParameter("phone_model", Build.MODEL)
-
-        val request = original.newBuilder()
-            .addHeader("Authorization", token)
-            .url(url.build())
-        chain.proceed(request.build())
+        val request = chain.request()
+        val httpUrl = request.url
+        val builder = request.newBuilder()
+        val headerValues = request.headers("url_name")
+        if(headerValues.isNotEmpty()){
+            //如果有这个header，先将配置的header删除，因此header仅用作app和okhttp之间使用
+            builder.removeHeader("url_name")
+            val headerValue = headerValues[0]
+            val newBaseUrl:HttpUrl
+            if(headerValue == "tenApi"){
+                newBaseUrl = BASE_URL.toHttpUrlOrNull()!!
+            }else if(headerValue == "paugram"){
+                newBaseUrl = BASE_URL_PAUGRAM.toHttpUrlOrNull()!!
+            }else{
+                newBaseUrl = httpUrl
+            }
+            val newHttpUrl = httpUrl
+                .newBuilder()
+                .scheme(newBaseUrl.scheme)
+                .host(newBaseUrl.host)
+                .port(newBaseUrl.port)
+                .build()
+            chain.proceed(builder.url(newHttpUrl).build())
+        }else{
+            chain.proceed(request)
+        }
     }
 
 }

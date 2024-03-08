@@ -33,6 +33,15 @@ class MainVM @Inject constructor(private val repo: AppServiceRepo, private val s
         }
     }
 
+    /**
+     * 获取随机网易云歌曲信息
+     */
+    fun getRandomSong(list:Int) {
+        viewModelScope.launch {
+            val song = repo.getRandomSong(list)
+        }
+    }
+
 
     /**
      * 查询数据库中所有的歌曲,不能用suspend修饰，否则在其他地方不能直接使用

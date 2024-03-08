@@ -4,6 +4,7 @@ import com.muen.mygo.http.CommonHandler
 import com.muen.mygo.http.httpCollect
 import com.muen.mygo.http.httpFlow
 import com.muen.mygo.source.network.AppServiceApi
+import com.muen.mygo.source.network.entity.PaulSong
 import com.muen.mygo.source.network.entity.Song
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,5 +21,12 @@ class AppServiceRepo @Inject constructor(
         httpFlow {
             service.getSong(id)
         }.httpCollect(handler)
+    }
+
+    /**
+     * 获取随机的音乐
+     */
+    suspend fun getRandomSong(list: Int):PaulSong {
+        return service.getRandomSong(list)
     }
 }

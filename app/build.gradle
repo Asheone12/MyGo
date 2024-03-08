@@ -23,8 +23,8 @@ android {
         applicationId "com.muen.mygo"
         minSdk 27
         targetSdk 33
-        versionCode 10005
-        versionName "1.0.5"
+        versionCode 10006
+        versionName "1.0.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,12 +35,14 @@ android {
             dimension 'version'
             //测试环境
             buildConfigField "String", "BASE_URL", '"https://tenapi.cn/v2/"'
+            buildConfigField "String", "BASE_URL_PAUGRAM", '"https://api.paugram.com"'
         }
 
         rel {
             dimension 'version'
             //正式环境
             buildConfigField "String", "BASE_URL", '"https://tenapi.cn/v2/"'
+            buildConfigField "String", "BASE_URL_PAUGRAM", '"https://api.paugram.com"'
         }
     }
 

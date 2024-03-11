@@ -1,7 +1,7 @@
 package com.muen.mygo.http
 
-import android.util.Log
 import com.muen.mygo.util.ToastUtils
+import timber.log.Timber
 
 interface HttpResultHandler<T> {
     suspend fun onDataResult(data: T?)
@@ -11,15 +11,15 @@ interface HttpResultHandler<T> {
 
 abstract class CommonHandler<T> : HttpResultHandler<T> {
     override suspend fun onDataResult(data: T?) {
-        Log.d("handle", "data=$data")
+        Timber.tag("handle").d("data = $data")
     }
 
     override suspend fun onCodeResult(code: Int, msg: String?) {
-        Log.d("handle", "code=$code,message=$msg")
+        Timber.tag("handle").d("code = $code, message = $msg")
         ToastUtils.toast(msg!!)
     }
 
     override suspend fun onErrorResult(throwable: Throwable) {
-        Log.d("handle", "throwable=$throwable")
+        Timber.tag("handle").d("throwable = $throwable")
     }
 }

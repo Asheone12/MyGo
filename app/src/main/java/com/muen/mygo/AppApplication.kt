@@ -6,6 +6,7 @@ import com.muen.mygo.util.GlideUtils
 import com.muen.mygo.util.ToastUtils
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
 
 @HiltAndroidApp
 class AppApplication : Application() {
@@ -20,5 +21,9 @@ class AppApplication : Application() {
         ToastUtils.init(this)
         //初始化GlideUtils
         GlideUtils.init(this)
+        //初始化Timber,在debug下开启日志
+        if(BuildConfig.DEBUG){
+            Timber.plant(Timber.DebugTree())
+        }
     }
 }

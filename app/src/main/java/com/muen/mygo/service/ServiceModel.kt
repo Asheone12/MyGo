@@ -1,6 +1,5 @@
 package com.muen.mygo.service
 
-import android.util.Log
 import com.muen.mygo.http.CommonHandler
 import com.muen.mygo.repo.AppServiceRepo
 import com.muen.mygo.source.local.dao.SongDao
@@ -21,11 +20,17 @@ class ServiceModel @Inject constructor(val repo: AppServiceRepo, val songDao: So
             repo.getSong(id, object : CommonHandler<Song>() {
                 override suspend fun onDataResult(data: Song?) {
                     super.onDataResult(data)
-                    if (data != null) {
-                        Log.d("http","这首歌曲是 = $data")
-                    }
                 }
             })
+        }
+    }
+
+    /**
+     * 获取随机网易云歌曲信息
+     */
+    fun getRandomSong(list:Int) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val song = repo.getRandomSong(list)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.muen.mygo.util
 
+import com.muen.mygo.BuildConfig
 import com.muen.mygo.BuildConfig.BASE_URL
 import com.muen.mygo.BuildConfig.BASE_URL_PAUGRAM
 import com.muen.mygo.MMKVManage.HTTP_TIME_OUT
@@ -7,6 +8,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -56,7 +58,11 @@ fun defaultHttpClientBuilder(
         .connectTimeout(HTTP_TIME_OUT, TimeUnit.SECONDS)
         .writeTimeout(HTTP_TIME_OUT, TimeUnit.SECONDS)
         .readTimeout(HTTP_TIME_OUT, TimeUnit.SECONDS)
-
+    if (BuildConfig.DEBUG) {
+        val logger = HttpLoggingInterceptor()
+        logger.level = HttpLoggingInterceptor.Level.BODY
+        builder.addInterceptor(logger)
+    }
     if (interceptor.isNotEmpty()) {
         interceptor.forEach {
             builder.addInterceptor(it)

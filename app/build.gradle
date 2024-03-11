@@ -125,4 +125,7 @@ dependencies {
     //悬浮按钮
     //implementation ("com.android.support:design:28.0.0")
     implementation("com.getbase:floatingactionbutton:1.10.1")
+
+    //统一日志管理工具
+    implementation("com.jakewharton.timber:timber:4.7.1")
 }

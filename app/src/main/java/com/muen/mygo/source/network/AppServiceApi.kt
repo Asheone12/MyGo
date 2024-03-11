@@ -3,6 +3,7 @@ package com.muen.mygo.source.network
 import com.muen.mygo.http.HttpResult
 import com.muen.mygo.source.network.entity.PaulSong
 import com.muen.mygo.source.network.entity.Song
+import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Query
@@ -25,6 +26,6 @@ interface AppServiceApi {
      */
     @Headers("url_name:paugram")
     @GET("/acgm/")
-    suspend fun getRandomSong(@Query("list") list: Int): PaulSong
+    fun getRandomSong(@Query("list") list: Int): Call<PaulSong>
 
 }

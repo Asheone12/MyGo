@@ -7,10 +7,14 @@ import com.muen.mygo.http.CommonHandler
 import com.muen.mygo.repo.AppServiceRepo
 import com.muen.mygo.source.local.dao.SongDao
 import com.muen.mygo.source.local.entity.SongEntity
+import com.muen.mygo.source.network.entity.PaulSong
 import com.muen.mygo.source.network.entity.Song
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Response
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,7 +42,16 @@ class MainVM @Inject constructor(private val repo: AppServiceRepo, private val s
      */
     fun getRandomSong(list:Int) {
         viewModelScope.launch {
-            val song = repo.getRandomSong(list)
+            repo.getRandomSong(list).enqueue(object :retrofit2.Callback<PaulSong>{
+                override fun onResponse(call: Call<PaulSong>, response: Response<PaulSong>) {
+                    Timber.tag("handle").d("code = ${response.code()} data = ${response.body()}")
+                }
+
+                override fun onFailure(call: Call<PaulSong>, t: Throwable) {
+
+                }
+
+            })
         }
     }
 
